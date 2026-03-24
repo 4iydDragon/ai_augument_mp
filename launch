@@ -1,0 +1,6 @@
+#!/bin/bash
+### create virtual environment
+python -m venv venv
+
+### launch the app
+python app.py
