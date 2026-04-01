@@ -1,31 +1,25 @@
 # configuration
 import re
 import math
-import string
-from zxcvbn import zxcvbn
-from getpass import getpass
-
-common_passwords = {"password", "123456", "password123", "qwerty", "admin"} ## common passwords
 
 ## 1 user password input
 def get_password():
-    password = getpass("Enter your password: ")
+    password = input("Enter your password: ")
     return password
 
 ## 2 Check password length
 def check_length(password):          ## checks the length
-    return len(password) >= 8         ## if it is less than 8
+    if len(password) < 8:            ## if it is less than 8
+        return "Too short"
+    return "Good length"
 
-## checks if password has symbols
-def has_symbol(password):
-    return any(ch in string.punctuation for ch in password)
 ## 3 Checks password character variety(lower & upper case, numbers, symbols)
 def check_characters(password):
     checks = {
         "lower": bool(re.search(r"[a-z]", password)), ## checks for atleast 1 lower case letter
         "upper": bool(re.search(r"[A-Z]", password)), ## checks for atleast 1 upper case letter
         "digit": bool(re.search(r"\d", password)),    ## checks for at least 1 numerical digit(0-9)
-        "symbol": has_symbol(password) ## checks for any of the listed symbols
+        "symbol": bool(re.search(r"[!@#$%^&*(),.?\":{}|<>]", password)) ## checks for any of the listed symbols
     }
     return checks
 
@@ -34,35 +28,36 @@ def check_patterns(password):
     patterns = []
 
     if "123" in password:
-        patterns.append("Contains sequence 123") ## checks for presence of 123
+        patterns.append("Cntains sequence 123") ## checks for presence of 123
 
     if "abc" in password.lower():
         patterns.append("Contains sequence abc") ## checks for presence of abc *lowercase
         
     if re.search(r"(.)\1{2}", password):
-        patterns.append("Contains repeated characters") ## checks for repeated characters using a regular expression
+        patterns.append("repeated characters") ## checks for repeated characters using a regular expression
 
     return patterns ## returns identified weak patterns
 
 ## 5 check common passwords
-
+common_passwords = ["password", "123456", "password123", "qwerty", "admin"] ## common passwords
 
 def check_common(password):
-    return password.lower() in common_passwords ## changes password to lower case and checks if it is in the common passwords list
-        
+    if password.lower() in common_passwords: ## changes password to lower case and checks if it is in the common passwords list
+        return "common password"
+    return "unique"
+
 ## 6 add entropy
 def calculate_entropy(password):
     pool = 0
-    
-    chars = check_characters(password)
-    if chars["lower"]:
+
+    if re.search(r"[a-z]", password):
         pool += 26
-    if chars["upper"]:
+    if re.search(r"[A-Z]", password):
         pool += 26
-    if chars["digit"]:
+    if re.search(r"\d", password):
         pool += 10
-    if chars["symbol"]:
-        pool += len(string.punctuation)
+    if re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        pool += 32
 
     if pool == 0:
         return 0
@@ -75,9 +70,8 @@ def evaluate_password(password):
     score = 0
     feedback = []
 
-
     # Length
-    if check_length(password):
+    if len(password) >= 8:
         score += 1
     else:
         feedback.append("Password is too short")
@@ -121,13 +115,27 @@ def main():
         for f in feedback:
             print("-", f)
 
-    result = zxcvbn(password)
-    print("\n--- zxcvbn Analysis ---")
-    print("Score (0-4):", result["score"])
-    print("Feedback:", result["feedback"]["warning"])
-
-    for suggestion in result["feedback"]["suggestions"]:
-        print("-", suggestion)
+    
 
 if __name__ == "__main__":
     main()
+
+# Main code
+#if __name__ == "__main__": 
+    ## @1 displays entered password
+#    pwd = get_password()             ## entered password is saved val pwd
+#    print("Password entered: ", pwd) ## entered password is displayed
+
+## @2 checks password length  
+#print (check_length(pwd))
+
+## @3 checks character variety
+#print (check_characters(pwd))
+
+## @4 checks common patterns
+# print (check_patterns(pwd))  dont need to include because it will return [] for false
+
+## @5 checks common passwords
+#print (check_common(pwd))
+
+## @6 

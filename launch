@@ -2,5 +2,8 @@
 ### create virtual environment
 python -m venv venv
 
+### 
+python -m pip install zxcvbn
+
 ### launch the app
 python app.py
