@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Password Analyzer</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body, html {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f0f4f8;
+    flex-direction: column;
+    padding: 20px;
+}
+
+h1.title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(90deg, #007BFF, #00C6FF);
+    padding: 15px 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+/* Form */
+.form-group {
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.password-container {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+input {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+input:focus {
+    border-color: #007BFF;
+    outline: none;
+}
+
+.eye-toggle {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    width: 22px;
+    fill: #007BFF;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.check-btn {
+    background: #007BFF;
+    color: white;
+}
+
+.generate-btn {
+    background: #00C6FF;
+    color: white;
+}
+
+/* Dropdown */
+select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+
+/* Result */
+#result {
+    background: #f9f9f9;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-family: monospace;
+}
+
+#suggestions {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1 class="title">Password Analyzer</h1>
+
+<div class="form-group">
+
+    <div class="password-container">
+        <input type="password" id="password" placeholder="Enter password">
+        <svg class="eye-toggle" onclick="togglePassword('password', this)" viewBox="0 0 24 24">
+            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5z"/>
+            <circle cx="12" cy="12" r="2.5"/>
+        </svg>
+    </div>
+
+    <div class="password-container">
+        <input type="password" id="previous" placeholder="Previous password (optional)">
+        <svg class="eye-toggle" onclick="togglePassword('previous', this)" viewBox="0 0 24 24">
+            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5z"/>
+            <circle cx="12" cy="12" r="2.5"/>
+        </svg>
+    </div>
+
+    <!-- NEW: Mode Selector -->
+    <select id="mode">
+        <option value="balanced">Balanced</option>
+        <option value="memorable">Memorable</option>
+        <option value="strong">Very Strong</option>
+    </select>
+
+    <!-- NEW: Generate Button -->
+    <button class="generate-btn" onclick="generatePassword()">Generate Password</button>
+
+    <button class="check-btn" onclick="analyzePassword()">Check Password</button>
+
+    <pre id="result"></pre>
+    <h3>Suggestions:</h3>
+    <ul id="suggestions"></ul>
+
+</div>
+
+<script>
+// Toggle password
+function togglePassword(id, svg) {
+    const input = document.getElementById(id);
+    const circle = svg.querySelector('circle');
+    if (input.type === "password") {
+        input.type = "text";
+        circle.style.display = "none";
+    } else {
+        input.type = "password";
+        circle.style.display = "block";
+    }
+}
+
+// NEW: Generate Password
+async function generatePassword() {
+    const mode = document.getElementById('mode').value;
+
+    try {
+        const res = await fetch(`/generate?mode=${mode}`);
+        const data = await res.json();
+
+        document.getElementById('password').value = data.generated_password;
+
+        // Auto analyze
+        analyzePassword();
+
+    } catch (err) {
+        alert("Failed to generate password");
+    }
+}
+
+// Analyze Password (UNCHANGED LOGIC)
+async function analyzePassword() {
+    const password = document.getElementById('password').value;
+    const previous = document.getElementById('previous').value;
+
+    if (!password) {
+        alert("Please enter a password!");
+        return;
+    }
+
+    try {
+        const res = await fetch('/analyze', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({password, previous})
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+            document.getElementById('result').innerText = data.error;
+            return;
+        }
+
+        document.getElementById('result').innerText =
+            `Score: ${data.score}\n` +
+            `Similarity: ${data.similarity}\n` +
+            `Breaches: ${data.breach_count}\n` +
+            `Dictionary: ${data.dictionary_warnings.join(", ")}`;
+
+        const sugList = document.getElementById('suggestions');
+        sugList.innerHTML = '';
+
+        data.ai_suggestions.forEach(s => {
+            const li = document.createElement('li');
+            li.textContent = s;
+            sugList.appendChild(li);
+        });
+
+    } catch (err) {
+        alert("Error analyzing password.");
+    }
+}
+</script>
+
+</body>
+</html>

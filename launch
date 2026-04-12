@@ -3,7 +3,16 @@
 python -m venv venv
 
 ### 
-python -m pip install zxcvbn
+venv\Scripts\activate.bat
+python -m ensurepip --upgrade
+python -m pip install --upgrade pip
+python -m pip install zxcvbn-python
+python -m pip install flask 
+python -m pip install python-Levenshtein
+python -m pip install argon2
+python -m pip install requests
+python -m pip install spacy
+ python -m spacy download en_core_web_sm
 
 ### launch the app
 python app.py
