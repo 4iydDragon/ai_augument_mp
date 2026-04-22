@@ -1,0 +1,6 @@
+# Dependencies
+flask
+zxcvbn-python
+python-Levenshtein
+requests
+flask-limiter
