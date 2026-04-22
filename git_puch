@@ -1,4 +1,24 @@
 #!/bin/bash
 git add .
-git commit -m "another day, another commit"
-git push
+git commit -m "HOT FIXS V3
+Here's a summary of every fix applied:
+app.py — 6 fixes
+Fix                     What changed
+#1 Mode support         generate_password(mode) now has three distinct branches: balanced (16 chars), memorable (20 chars, no symbols), strong (24 chars, extended symbols)
+#2 spaCy removed        Replaced with a curated COMMON_WORDS set + regex strip of non-alpha chars, so substitutions like p@ssword are still caught
+#3 Similarity null      Returns null (not 0) when no previous password is provided, so the frontend can distinguish "not compared" from "0% similar"
+#4 Entropy thresholds   Recalibrated against guesses_log10 (base-10 log of guesses). The old thresholds were off by several orders of magnitude
+#5 Rate limiting        Added flask-limiter — /analyze capped at 30/min, /generate at 20/min
+#6 Input length cap     Rejects passwords over 256 characters with a clear 400 error
+
+index.html — 5 fixes
+Fix                     What changed
+#11 Mode dropdown       Now actually passes ?mode=... that the backend handles — labels show the char count too
+#12 Eye icon state      SVG now has a diagonal slash line that toggles visibility, giving proper show/hide feedback
+#13 Generated password  A readonly text field appears below the generate button showing the password in plaintext
+visible
+#14 Copy to clipboard   "Copy" button next to the generated password with a "Copied!" confirmation flash
+#15 Error handling      All fetch calls check res.ok, parse error JSON, and surface messages in a styled red banner instead of generic alert()
+#17 Hidden until        #result, #strength-badge, #entropy-info, and the suggestions header are all display:none on load and only revealed once analysis runs
+populated               
+
