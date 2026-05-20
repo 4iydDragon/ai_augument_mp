@@ -98,27 +98,12 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     margin-top: 10px;
 }
 
-/*
 .copy-row input {
     flex: 1;
     margin-bottom: 0;
     font-family: monospace;
     background: #f0f4f8;
 }
-*/
-/* FIX #18 – Generated password field clipping next to Copy button */
-
-/* Override global input styling for generated password */
-#generated-display {
-    width: auto;              /* stop width:100% overflow */
-    flex: 1;
-    min-width: 0;             /* allows flex shrinking */
-    padding-right: 12px;      /* remove eye-icon padding */
-    overflow-x: auto;         /* allow scrolling for long passphrases */
-    white-space: nowrap;
-    font-family: monospace;
-}
-
 
 .copy-btn {
     width: auto;
@@ -232,7 +217,7 @@ select {
     <!-- Mode selector – FIX #11: actually works now backend handles it -->
     <select id="mode">
         <option value="balanced">Balanced (16 chars)</option>
-        <option value="memorable">Memorable (4-word passphrase)</option>
+        <option value="memorable">Memorable (20 chars, no symbols)</option>
         <option value="strong">Very Strong (24 chars, full symbols)</option>
     </select>
 

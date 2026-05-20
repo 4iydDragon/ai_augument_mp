@@ -32,46 +32,18 @@ limiter = Limiter(
 
 # =========================================================
 # Simple word set for dictionary detection  (FIX #2)
-# hot fix #2.2 Used Seclists 2025-199_most_used_passwords
+# Replaces spaCy — far more reliable for password strings
 # =========================================================
-def load_common_passwords(path="2025-199_most_used_passwords.txt"):
-    with open(path, "r", encoding="utf-8") as f:
-        return {
-            line.strip().lower()
-            for line in f
-            if line.strip() and not line.startswith("#")
-        }
-
-common_words = load_common_passwords()
-
-base_common_passwords = {
+COMMON_WORDS = {
     "password", "pass", "word", "admin", "user", "login", "welcome",
     "hello", "monkey", "dragon", "master", "shadow", "sunshine", "princess",
     "football", "baseball", "soccer", "hockey", "batman", "superman",
-    "qwerty", "letmein", "iloveyou", "trustno", "starwars", "password123", "password@123", "secure",
+    "qwerty", "letmein", "iloveyou", "trustno", "starwars", "password123", "password@123", "secure"
     "michael", "jessica", "charlie", "donald", "thomas", "george",
     "summer", "winter", "spring", "autumn", "flower", "music", "secret",
     "cheese", "butter", "cookie", "coffee", "hunter", "silver", "golden",
     "black", "white", "green", "blue", "purple", "orange", "yellow", "red",
 }
-
-common_passwords = base_common_passwords.union(common_words)
-
-# =========================================================
-# Wordlist #hot fix 1.2 
-# =========================================================
-def load_eff_wordlist(path="wordlist_en_eff.txt"):
-    words = []
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            parts = line.split("\t")
-            if len(parts) == 2:
-                words.append(parts[1])
-    return words
-EFF_WORDS = load_eff_wordlist()
 
 
 # =========================================================
@@ -112,15 +84,15 @@ def pwned_count(password):
 def detect_dictionary_words(password):
     """
     Detects common dictionary words embedded in the password.
-    Checks both the raw password and alphanumeric version
+    Checks both the raw password and a stripped (alpha-only) version
     to catch substitutions like p@ssword -> pssword.
     spaCy removed: it tokenises poorly on non-prose strings.
     """
     password_lower = password.lower()
-    stripped = re.sub(r"[^a-z0-9]", "", password_lower)
+    stripped = re.sub(r"[^a-z]", "", password_lower)
     found = []
 
-    for word in common_passwords:
+    for word in COMMON_WORDS:
         if word in password_lower or word in stripped:
             found.append(word)
 
@@ -168,52 +140,28 @@ def generate_password(mode="balanced"):
 
     Modes:
         balanced   – 16 chars, letters + digits + light symbols
-        memorable  – varieable char, diceware word-based passphrases (easier to type)
+        memorable  – 20 chars, letters + digits only (easier to type)
         strong     – 24 chars, full character set (maximum entropy)
-
-    Hot fix #1.1 memorable mode
-
-    Generates a password based on the selected mode:
-    - balanced: mixed characters
-    - memorable: word-based passphrase
-    - strong: long random string with full symbols
-
-    Hot fix #1.2 Memorable wordlist
-    changing the word list from a small custom one to diceware eff_large_wordlist:
-    - 7,700 words (EFF large list)
-    - Much higher entropy per word
-    - Stronger justification for “memorable yet secure”
     """
-
     if mode == "memorable":
-        # hot Fix 1.2 changed form small built word list to EFF large wordlist for passphrases
-
-        # Generate a 4-word passphrase
-        words = [secrets.choice(EFF_WORDS) for _ in range(4)]
-
-        # Add a small numeric suffix to improve resistance to guessing
-        number = str(secrets.randbelow(90) + 10)  # 2-digit number
-
-        password = "-".join(words) + number
-        return password
-
+        characters = string.ascii_letters + string.digits
+        length = 20
     elif mode == "strong":
+        characters = (
+            string.ascii_letters
+            + string.digits
+            + "!@#$%^&*()-_=+[]{}|;:,.<>?"
+        )
         length = 24
-        characters = (
-            string.ascii_letters +
-            string.digits +
-            "!@#$%^&*()-_=+[]{}|;:,.<>?"
-        )
-        return "".join(secrets.choice(characters) for _ in range(length))
-
     else:  # balanced
-        length = 16
         characters = (
-            string.ascii_letters +
-            string.digits +
-            "!@#$%^&*()-_=+[]{}"
+            string.ascii_letters
+            + string.digits
+            + "!@#$%^&*()-_=+[]{}"
         )
-        return "".join(secrets.choice(characters) for _ in range(length))
+        length = 16
+
+    return "".join(secrets.choice(characters) for _ in range(length))
 
 
 # =========================================================
